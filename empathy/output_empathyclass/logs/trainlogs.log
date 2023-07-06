@@ -1,0 +1,10 @@
+2023-07-06 12:49:22,486 INFO Using CPU
+2023-07-06 12:49:24,673 INFO Training of empathy classifier started at 2023-07-06 12:49:24.673371, optimizer: AdamW (
+Parameter Group 0
+    betas: (0.9, 0.999)
+    correct_bias: True
+    eps: 1e-08
+    initial_lr: 0.00015
+    lr: 0.0
+    weight_decay: 0.0
+), scheduler: <torch.optim.lr_scheduler.LambdaLR object at 0x000001FE6EA4BF90>, learning rate: 0.00015, loss function: CrossEntropyLoss()
