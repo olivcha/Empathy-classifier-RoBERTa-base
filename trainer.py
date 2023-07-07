@@ -31,7 +31,7 @@ class Trainer():
       task. Early stopping is implemented.
     '''
 
-    def __init__(self, train_path, val_path, test_path, location, batch_size=20, epochs=10, lr=1.5E-04, second_ft=False):
+    def __init__(self, train_path, val_path, test_path, location, batch_size=20, epochs=10, lr=2E-06, second_ft=False):
         '''
         Constructor for the Trainer class. 
             Args:
@@ -98,9 +98,9 @@ class Trainer():
         # keeping track of the best model
         best_val_loss = float('inf') # set to infinity
         if self.second_ft:
-            best_model_path = os.path.join("empathy", "saved_models", "best_model", "best_model_second_ft.pt")
+            best_model_path = os.path.join("saved_models", "best_model", "best_model_second_ft.pt")
         else:
-            best_model_path = os.path.join("empathy", "saved_models", "best_model", "best_model_first_ft.pt")
+            best_model_path = os.path.join("saved_models", "best_model", "best_model_first_ft.pt")
 
         # log each epoch
         logging.info(f"Training of empathy classifier started at {datetime.datetime.now()}, optimizer: {self.optimizer}, scheduler: {self.scheduler}, learning rate: {self.lr}, loss function: {self.loss}")
@@ -137,6 +137,8 @@ class Trainer():
             self.val_loss_history.append(avg_val_loss)
             val_accuracy = self.val_metric.compute()
             
+            self.early_stopper(val_loss, self.model)
+            
             logging.info(f"Epoch {epoch + 1}/{self.epochs} - "
                      f"Train Loss: {avg_train_loss:.4f} - "
                      f"Val Loss: {avg_val_loss:.4f} - "
@@ -154,7 +156,7 @@ class Trainer():
                 self.save_model(best_model_path)
             
             # early stopping if validation loss does not improve 
-            if self.early_stopper and self.early_stopper.early_stop:
+            if self.early_stopper.early_stop:
                 logging.info(f"Early stopping at epoch {epoch + 1} with validation loss: {avg_val_loss:.4f}")
                 break
    
@@ -186,13 +188,16 @@ class Trainer():
                 test_loss - test loss
         '''
         test_dataloader = self.test_dataloader()
+        print("Running test set evaluation...")
         logging.info("Running test set evaluation...")
         
         self.model.eval().to(self.device)
-
+        true_y, pred_y = [], []
+        total_loss = 0.0
+        total_samples = 0
+        
         # iterate through batches using dataloader
         with torch.no_grad(): # no gradient calculation
-            true_y, pred_y = [], []
             for i, batch_ in enumerate(test_dataloader):
                 (X, attn), y = batch_ 
                 
@@ -202,8 +207,12 @@ class Trainer():
                                 
                 true_y.extend(y.cpu()) 
                 pred_y.extend(y_pred.cpu())
-        
+
+                total_samples += y.size(0)
+                
+        # Print classification report and confusion matrix
         print("\n" + "_" * 80)
+        print(total_samples)
         # print classification report and confusion matrix
         print(classification_report(true_y, pred_y, target_names=labels, digits=4))
         logging.info(classification_report(true_y, pred_y, target_names=labels, digits=4))
@@ -295,6 +304,8 @@ class Trainer():
         
         outputs = self.forward(inputs)
         loss = self.loss(outputs, labels)
+        print(loss)
+        logging.info("Test loss: " + str(loss))
         self.test_metric(outputs, labels)  # Update the test metric
         
         return loss.item()

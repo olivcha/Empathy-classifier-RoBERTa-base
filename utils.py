@@ -62,7 +62,7 @@ class EarlyStopper:
         self.best_score = None
         self.early_stop = False
         self.min_validation_loss = np.inf
-        self.best_model_path = os.path.join("empathy", "saved_models", "checkpoint_model.pt")
+        self.best_model_path = os.path.join("saved_models", "checkpoint_model.pt")
 
     def __call__(self, val_loss, model):
         score = -val_loss

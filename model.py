@@ -34,13 +34,14 @@ class EmpathyClassificationModel(nn.Module):
         # self.loss.require_grad = True
         self.dropout = dropout
         self.base_model_output_size = base_model_output_size
+        self.n_classes = n_classes
 
         self.classifier = nn.Sequential(
-            nn.Dropout(dropout),
-            nn.Linear(base_model_output_size, base_model_output_size),
+            nn.Dropout(self.dropout),
+            nn.Linear(self.base_model_output_size, self.base_model_output_size),
             Mish(),
-            nn.Dropout(dropout),
-            nn.Linear(base_model_output_size, n_classes)
+            nn.Dropout(self.dropout),
+            nn.Linear(self.base_model_output_size, self.n_classes)
         )
 
         for layer in self.classifier:
